@@ -118,40 +118,44 @@ fn decode_block_tail(chars: &[u8], n_chars: usize) -> [u8; 19] {
 }
 
 pub fn encode(data: &[u8]) -> String {
-    let mut result = String::new();
+    let len = data.len();
+    let full_blocks = len / 19;
+    let tail_bytes = len % 19;
+    let total_chars = full_blocks * 24 + if tail_bytes > 0 {TAIL_CHARS[tail_bytes]} else {0};
+
+    let mut buf = vec![0u8; total_chars];
+
+    let mut offset = 0;
 
     for block in data.chunks(19) {
         let len = block.len();
         if len == 19 {
             let mut n = U152::from_be_bytes(block);
-            let mut chars = [0u8; 24];
 
             for j in (0..24).rev() {
                 let (new_n, rem) = n.div_rem_88();
-                chars[j] = ALPHABET[rem as usize];
+                buf[offset + j] = ALPHABET[rem as usize];
                 n = new_n;
             }
 
-            result.push_str(std::str::from_utf8(&chars).unwrap());
+            offset += 24;
         } else {
             let n_chars = TAIL_CHARS[len];
             let mut padded = [0u8; 19];
             padded[19 - len..].copy_from_slice(block);
 
             let mut n = U152::from_be_bytes(&padded);
-            let mut chars = [0u8; 24];
 
-            for j in (0..24).rev() {
+            for j in (0..n_chars).rev() {
                 let (new_n, rem) = n.div_rem_88();
-                chars[j] = ALPHABET[rem as usize];
+                buf[offset + j] = ALPHABET[rem as usize];
                 n = new_n;
             }
-
-            result.push_str(std::str::from_utf8(&chars[24 - n_chars..]).unwrap());
+            offset += n_chars;
         }
     }
 
-    result
+    String::from_utf8(buf).unwrap()
 }
 
 pub fn decode(s: &str) -> Vec<u8> {
