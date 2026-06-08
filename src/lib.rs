@@ -10,12 +10,14 @@ struct U152 {
 }
 
 impl U152 {
+    #[inline(always)]
     fn from_be_bytes(b: &[u8]) -> Self {
         let hi = (b[0] as u32) << 16 | (b[1] as u32) << 8 | b[2] as u32;
         let lo = u128::from_be_bytes(b[3..19].try_into().unwrap());
         Self { hi, lo }
     }
 
+    #[inline(always)]
     fn div_rem_88(self) -> (Self, u8) {
         let mut parts = [
             self.hi,
@@ -47,6 +49,7 @@ impl U152 {
         )
     }
 
+    #[inline(always)]
     fn mul_add(self, factor: u64, add: u8) -> Self {
         let mut parts = [
             self.hi,
@@ -86,6 +89,7 @@ const fn make_index_table() -> [u8; 128] {
 
 const INDEX: [u8; 128] = make_index_table();
 
+#[inline(always)]
 fn decode_block(chars: &[u8]) -> [u8; 19] {
     let mut n = U152 { hi: 0, lo: 0 };
     for &c in chars {
@@ -99,6 +103,7 @@ fn decode_block(chars: &[u8]) -> [u8; 19] {
     bytes
 }
 
+#[inline(always)]
 fn decode_block_tail(chars: &[u8], n_chars: usize) -> [u8; 19] {
     let mut n = U152 { hi: 0, lo: 0 };
     for &c in &chars[..n_chars] {
