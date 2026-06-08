@@ -13,3 +13,11 @@ include = ["src/**/*.rs", "Cargo.toml", "README.md", "base88-spec.md"]
 
 [dev-dependencies]
 base64 = "0.22"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+overflow-checks = false
