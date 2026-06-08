@@ -5,9 +5,9 @@ edition = "2024"
 description = "Fast and safe Base88 encoding/decoding"
 license = "MIT"
 repository = "https://github.com/rostislavnagimov/base88"
-keywords = ["encoding", "base64", "codec", "serialization", "base88"]
+keywords = ["base64", "encoding", "binary", "codec", "serialization"]
 categories = ["encoding", "parsing", "algorithms"]
-include = ["src/**/*.rs", "Cargo.toml", "README.md", "base88-spec.md"]
+include = ["src/**/*.rs", "Cargo.toml", "README.md"]
 
 [dependencies]
 
