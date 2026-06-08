@@ -104,9 +104,9 @@ fn decode_block(chars: &[u8]) -> [u8; 19] {
 }
 
 #[inline(always)]
-fn decode_block_tail(chars: &[u8], n_chars: usize) -> [u8; 19] {
+fn decode_block_tail(chars: &[u8]) -> [u8; 19] {
     let mut n = U152 { hi: 0, lo: 0 };
-    for &c in &chars[..n_chars] {
+    for &c in chars {
         n = n.mul_add(88, INDEX[c as usize]);
     }
     let mut bytes = [0u8; 19];
@@ -177,7 +177,7 @@ pub fn decode(s: &str) -> Vec<u8> {
     }
 
     if tail_bytes > 0 {
-        let block = decode_block_tail(&s[full_blocks * 24..], tail_chars);
+        let block = decode_block_tail(&s[full_blocks * 24..]);
         result[full_blocks * 19..].copy_from_slice(&block[19 - tail_bytes..]);
     }
 
