@@ -14,7 +14,7 @@ fn report(name: &str, original: &[u8], encoded: &str, encode_ms: f64, decode_ms:
 
 #[test]
 fn file_roundtrip() {
-    let data = fs::read("tests/test-font.ttf").expect("положи файл в tests/test-font.ttf");
+    let data = fs::read("tests/test-font.ttf").expect("Put the file in tests/test-font.ttf");
 
     // --- base88 ---
     let t = Instant::now();

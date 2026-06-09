@@ -21,3 +21,8 @@ codegen-units = 1
 panic = "abort"
 strip = true
 overflow-checks = false
+
+[[bench]]
+name = "bench"
+path = "benches/performance.rs"
+harness = false
