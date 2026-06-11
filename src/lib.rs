@@ -1,8 +1,20 @@
-const ALPHABET: &[u8] =
+const ALPHABET: &[u8; 88] =
     b" !#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~";
 const TAIL_CHARS: [usize; 19] = [
     0, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23,
 ];
+const INDEX: [u8; 128] = make_index_table();
+
+const fn make_index_table() -> [u8; 128] {
+    let mut table = [0u8; 128];
+    let mut i = 0;
+    while i < ALPHABET.len() {
+        table[ALPHABET[i] as usize] = i as u8;
+        i += 1
+    }
+
+    table
+}
 
 struct U152 {
     hi: u32,
@@ -76,19 +88,6 @@ impl U152 {
     }
 }
 
-const fn make_index_table() -> [u8; 128] {
-    let mut table = [0u8; 128];
-    let mut i = 0;
-    while i < ALPHABET.len() {
-        table[ALPHABET[i] as usize] = i as u8;
-        i += 1
-    }
-
-    table
-}
-
-const INDEX: [u8; 128] = make_index_table();
-
 #[inline(always)]
 fn decode_block(chars: &[u8]) -> [u8; 19] {
     let mut n = U152 { hi: 0, lo: 0 };
@@ -121,7 +120,12 @@ pub fn encode(data: &[u8]) -> String {
     let len = data.len();
     let full_blocks = len / 19;
     let tail_bytes = len % 19;
-    let total_chars = full_blocks * 24 + if tail_bytes > 0 {TAIL_CHARS[tail_bytes]} else {0};
+    let total_chars = full_blocks * 24
+        + if tail_bytes > 0 {
+            TAIL_CHARS[tail_bytes]
+        } else {
+            0
+        };
 
     let mut buf = vec![0u8; total_chars];
 
@@ -182,4 +186,107 @@ pub fn decode(s: &str) -> Vec<u8> {
     }
 
     result
+}
+
+pub fn encode_digits(digits: &str) -> String {
+    let len = digits.len();
+    let bytes = digits.as_bytes();
+
+    let mut result = String::with_capacity(len);
+
+    let mut i = 0;
+
+    while i < len {
+        let number = bytes[i] - b'0';
+        if number == 9 || number == 0 {
+            result.push(ALPHABET[number as usize] as char);
+            i += 1;
+            continue;
+        }
+
+        if i + 1 < len {
+            let next_number = bytes[i + 1] - b'0';
+            if number == 8 {
+                if next_number > 7 {
+                    result.push(ALPHABET[8] as char);
+                    i += 1;
+                    continue;
+                }
+
+                let val = 80 + next_number;
+
+                result.push(ALPHABET[val as usize] as char);
+                i += 2;
+                continue;
+            }
+
+            let val = (number * 10) + next_number;
+
+            result.push(ALPHABET[val as usize] as char);
+            i += 2;
+            continue;
+        } else {
+            result.push(ALPHABET[number as usize] as char);
+            i += 1;
+            continue;
+        }
+    }
+
+    result
+}
+
+pub fn decode_digits(encoded_digits: &str) -> String {
+    let bytes = encoded_digits.as_bytes();
+    let mut result = String::with_capacity(bytes.len() * 2);
+
+    for &b in bytes {
+        let val = INDEX[b as usize];
+        if val < 10 {
+            result.push((b'0' + val) as char);
+        } else {
+            result.push((b'0' + (val / 10)) as char);
+            result.push((b'0' + (val % 10)) as char);
+        }
+    }
+    result
+}
+
+fn pack_bit_string(bit_str: &str) -> Vec<u8> {
+    let bytes_len = bit_str.len().div_ceil(8);
+    let mut result = Vec::with_capacity(bytes_len);
+
+    for chunk in bit_str.as_bytes().chunks(8) {
+        let mut current_byte = 0u8;
+        for (i, &bit) in chunk.iter().enumerate() {
+            if bit == b'1' {
+                current_byte |= 1 << (7 - i);
+            }
+        }
+        result.push(current_byte);
+    }
+    result
+}
+
+fn unpack_to_bit_string(bytes: &[u8]) -> String {
+    let mut bit_str = String::with_capacity(bytes.len() * 8);
+    for &byte in bytes {
+        for bit_idx in 0..8 {
+            if (byte & (1 << (7 - bit_idx))) != 0 {
+                bit_str.push('1');
+            } else {
+                bit_str.push('0');
+            }
+        }
+    }
+    bit_str
+}
+
+pub fn encode_bit_string(string: &str) -> String {
+    let packed = pack_bit_string(string);
+    encode(&packed)
+}
+
+pub fn decode_bit_string(string: &str) -> String {
+    let decoded = decode(string);
+    unpack_to_bit_string(&decoded)
 }

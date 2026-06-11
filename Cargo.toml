@@ -1,6 +1,6 @@
 [package]
 name = "base88"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 description = "Fast and safe Base88 encoding/decoding"
 license = "MIT"
@@ -23,6 +23,11 @@ strip = true
 overflow-checks = false
 
 [[bench]]
-name = "bench"
-path = "benches/performance.rs"
+name = "file"
+path = "benches/file.rs"
+harness = false
+
+[[bench]]
+name = "digits"
+path = "benches/digits.rs"
 harness = false
